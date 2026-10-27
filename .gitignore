@@ -1,0 +1,4 @@
+webapp/logs/*
+webapp/uploads/*
+!webapp/logs/.gitkeep
+!webapp/uploads/.gitkeep
