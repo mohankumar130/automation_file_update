@@ -1,4 +1,84 @@
-<!doctype html><html><head><meta charset="utf-8"><title>MyApp — stage</title>
-<link rel="stylesheet" href="assets/css/style.css"></head>
-<body><h1>MyApp</h1><p>Multi-folder sample app served by Apache. DocumentRoot: /var/www/html/myapp</p>
-<script src="assets/js/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sports Mech — Player Registration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <!-- animated gradient background blobs -->
+  <div class="bg-blobs"><span></span><span></span><span></span></div>
+
+  <header class="hero">
+    <nav class="nav">
+      <div class="brand">🏆 Sports<span>Mech</span></div>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#register">Register</a></li>
+        <li><a href="#stats">Stats</a></li>
+      </ul>
+    </nav>
+
+    <div class="hero-inner">
+      <span class="badge">⚡ Auction 2027 · Live Registration</span>
+      <h1>Build Your <span class="grad-text">Dream Squad</span></h1>
+      <p class="sub">Register players, track the auction, and manage your roster — all in one colorful, lightning-fast dashboard.</p>
+      <div class="cta">
+        <a href="#register" class="btn btn-primary">Register a Player</a>
+        <a href="#stats" class="btn btn-ghost">View Stats</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- feature cards -->
+    <section id="features" class="cards">
+      <article class="card c1"><div class="ic">🎯</div><h3>Smart Registration</h3><p>Fast, validated player sign-up with instant feedback.</p></article>
+      <article class="card c2"><div class="ic">💰</div><h3>Live Auction</h3><p>Real-time bidding view with purse tracking per team.</p></article>
+      <article class="card c3"><div class="ic">📊</div><h3>Analytics</h3><p>Player stats, team balance, and spend breakdowns.</p></article>
+      <article class="card c4"><div class="ic">🛡️</div><h3>Secure</h3><p>Role-based access and audited changes end to end.</p></article>
+    </section>
+
+    <!-- stats counters -->
+    <section id="stats" class="stats">
+      <div class="stat"><div class="num" data-target="248">0</div><div class="lbl">Players</div></div>
+      <div class="stat"><div class="num" data-target="10">0</div><div class="lbl">Teams</div></div>
+      <div class="stat"><div class="num" data-target="92">0</div><div class="lbl">Cr Purse</div></div>
+      <div class="stat"><div class="num" data-target="100">0</div><div class="lbl">% Live</div></div>
+    </section>
+
+    <!-- registration form -->
+    <section id="register" class="register">
+      <h2>Player Registration</h2>
+      <p class="muted">Add a player to the auction pool.</p>
+      <form id="reg-form" class="reg-form" novalidate>
+        <div class="row">
+          <label>Full name<input name="name" required placeholder="e.g. Rohit Sharma"></label>
+          <label>Role
+            <select name="role" required>
+              <option value="">Select…</option>
+              <option>Batsman</option><option>Bowler</option>
+              <option>All-rounder</option><option>Wicket-keeper</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Base price (₹ Cr)<input name="price" type="number" min="0" step="0.5" required placeholder="2.0"></label>
+          <label>Country<input name="country" placeholder="India"></label>
+        </div>
+        <button class="btn btn-primary" type="submit">➕ Add Player</button>
+      </form>
+      <ul id="player-list" class="player-list" aria-live="polite"></ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Served by Apache · <span id="ver">MyApp</span> · <span id="count">0</span> players registered</p>
+  </footer>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
