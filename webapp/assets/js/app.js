@@ -1,1 +1,1 @@
-console.log("MyApp loaded v1");
+console.log("MyApp loaded v2 — deployed via automation");

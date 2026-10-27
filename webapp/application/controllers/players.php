@@ -1,1 +1,1 @@
-<?php // players controller v1 ?>
+<?php // players controller v2 (updated) ?>
