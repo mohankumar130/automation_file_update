@@ -31,7 +31,7 @@ log()  { echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 die()  { echo "❌ ERROR: $*" >&2; exit 1; }
 
 timestamp_date()      { date +"%d-%m-%Y"; }
-timestamp_date_time() { date +"%d-%m-%Y-%H-%M"; }
+timestamp_date_time() { date +"%d-%m-%Y-%H-%M-%S"; }
 
 # run-or-echo wrapper: in dry-run, print the command instead of executing it
 run() {
@@ -152,12 +152,21 @@ if [ "$DRY_RUN" -eq 0 ] && [ -n "$SRC_SUBDIR" ] && [ ! -d "$SRC_ROOT" ]; then
 fi
 
 # ---------- backup helper ----------
+# Backup name always includes DATE + TIME (to the second) so repeated deploys of
+# the same file never overwrite an earlier backup. If two backups land in the
+# same second, a numeric counter (-1, -2, ...) guarantees uniqueness.
 backup_file() {
-  local src="$1" dir name base ext newname dest
+  local src="$1" dir name base ext stamp newname dest n
   dir="$(dirname "$src")"; name="$(basename "$src")"
   if [[ "$name" == *.* ]]; then base="${name%.*}"; ext=".${name##*.}"; else base="$name"; ext=""; fi
-  newname="$base-$(timestamp_date)$ext"
-  [ -e "$dir/$newname" ] && newname="$base-$(timestamp_date_time)$ext"
+  stamp="$(timestamp_date_time)"                 # DD-MM-YYYY-HH-MM-SS
+  newname="$base-$stamp$ext"
+  # collision safety net for same-second repeats
+  n=1
+  while [ -e "$dir/$newname" ]; do
+    newname="$base-$stamp-$n$ext"
+    n=$((n + 1))
+  done
   dest="$dir/$newname"
   if [ "$DRY_RUN" -eq 1 ]; then echo "$dest"; return 0; fi
   cp -p "$src" "$dest" && { echo "$dest"; return 0; }
