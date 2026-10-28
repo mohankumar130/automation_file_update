@@ -1,4 +1,4 @@
-/* Sports Mech — client-side app (v3, colorful UI) */
+/* Sports Mech — client-side app (v4, live ticker + colorful UI) */
 (function () {
   "use strict";
   var KEY = "sportsmech.players";
