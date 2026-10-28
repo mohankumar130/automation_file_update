@@ -56,7 +56,7 @@ while [ $# -gt 0 ]; do
 done
 
 # ---------- required commands ----------
-for cmd in git cp rm mkdir basename dirname date; do
+for cmd in git cp rm mkdir basename dirname date md5sum; do
   command -v "$cmd" >/dev/null 2>&1 || die "Missing required command: $cmd"
 done
 
@@ -101,6 +101,7 @@ HOST_V="$(hostname 2>/dev/null || echo unknown)"
 SERVER_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 
 declare -a BACKUP_SRC=() BACKUP_DEST=() COPIED_FROM=() COPIED_TO=() SKIPPED=() ERRORS=()
+declare -a VERIFIED=() MISMATCH=()
 
 # ---------- summary banner ----------
 log "=========== DEPLOY PLAN ==========="
@@ -173,6 +174,9 @@ backup_file() {
   return 2
 }
 
+# md5 hash of a file (empty string if file missing)
+hash_of() { [ -f "$1" ] && md5sum "$1" 2>/dev/null | awk '{print $1}' || echo ""; }
+
 # ---------- copy loop ----------
 for rel in "${FILES[@]}"; do
   # normalize windows backslashes -> forward, strip leading slashes
@@ -209,6 +213,18 @@ for rel in "${FILES[@]}"; do
   if run cp -p "$src" "$dest"; then
     COPIED_FROM+=("$src"); COPIED_TO+=("$dest")
     log "   ✅ copied"
+    # verify destination content matches source (skip in dry-run)
+    if [ "$DRY_RUN" -eq 0 ]; then
+      src_h="$(hash_of "$src")"; dst_h="$(hash_of "$dest")"
+      if [ -n "$src_h" ] && [ "$src_h" = "$dst_h" ]; then
+        VERIFIED+=("$rel_unix")
+        log "   🔒 verified (md5 $src_h)"
+      else
+        MISMATCH+=("$rel_unix")
+        ERRORS+=("verify-failed:$rel_unix")
+        log "   ❌ VERIFY FAILED — src=$src_h dst=$dst_h"
+      fi
+    fi
   else
     ERRORS+=("copy-failed:$rel_unix")
     log "   ❌ copy failed"
@@ -236,6 +252,14 @@ if [ "${#COPIED_FROM[@]}" -gt 0 ]; then
   echo " Copied:"
   for i in "${!COPIED_FROM[@]}"; do echo "   - ${COPIED_FROM[$i]}  ->  ${COPIED_TO[$i]}"; done
 else echo " No files copied."; fi
+# verification results
+if [ "$DRY_RUN" -eq 0 ]; then
+  echo " Verified (md5 match): ${#VERIFIED[@]} / ${#COPIED_FROM[@]}"
+  if [ "${#MISMATCH[@]}" -gt 0 ]; then
+    echo " ❌ CONTENT MISMATCH (deployed file != source):"
+    for m in "${MISMATCH[@]}"; do echo "   - $m"; done
+  fi
+fi
 [ "${#SKIPPED[@]}" -gt 0 ] && { echo " Skipped:"; for s in "${SKIPPED[@]}"; do echo "   - $s"; done; }
 if [ "${#ERRORS[@]}" -gt 0 ]; then
   echo " Errors:"; for e in "${ERRORS[@]}"; do echo "   - $e"; done
@@ -249,3 +273,11 @@ echo "=========================================="
 if [ "$DRY_RUN" -eq 0 ] && [ -d "$TMP_DIR" ]; then
   rm -rf "$TMP_DIR"
 fi
+
+# exit non-zero if anything was skipped, errored, or failed verification,
+# so a run that did not fully succeed cannot look like a success.
+if [ "${#ERRORS[@]}" -gt 0 ] || [ "${#SKIPPED[@]}" -gt 0 ]; then
+  echo "❌ Deployment finished with issues (errors/skipped/mismatch). See summary." >&2
+  exit 1
+fi
+exit 0
